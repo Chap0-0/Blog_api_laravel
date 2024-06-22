@@ -4,7 +4,9 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Post;
+use App\Models\PostUserLike;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PostController extends Controller
 {
@@ -13,8 +15,8 @@ class PostController extends Controller
         return response()->json($posts, 200);
     }
 
-    public function show($id) {
-        $post = Post::findOrFail($id);
+    public function show($post_id) {
+        $post = Post::findOrFail($post_id);
         return response()->json($post, 200);
     }
 
@@ -22,9 +24,12 @@ class PostController extends Controller
         $data = $request->validate([
             'title' => 'required|string|min:4',
             'description' => 'required|string',
-            'user_id' => 'required|exists:users,id',
             'file' => 'required|file',
         ]);
+
+        $user = Auth::user();
+
+        $data['user_id'] = $user->id;
 
         $uniqueFileName = uniqid('post_', true) . '.html';
 
@@ -36,4 +41,33 @@ class PostController extends Controller
 
         return response()->json($post, 201);
     }
+
+
+    public function like($post_id){
+        $user = Auth::user();
+
+        $post = Post::findOrFail($post_id);
+
+        if (!$post) {
+            return response()->json(['error' => 'Пост не найден'], 404);
+        }
+
+        $user->likes()->syncWithoutDetaching([$post_id]);
+        return response()->json(['message' => 'Лайк успешно поставлен'], 200);
+    }
+
+    public function publish($post_id) {
+        $user = Auth::user();
+        $post = Post::findOrFail($post_id);
+        if (!$post || $user->id !== $post->user_id) {
+            return response()->json(['error' => 'Пост не найден'], 404);
+        }
+
+        $post->status = 'published';
+
+        $post->save();
+
+        return response()->json(['message' => 'Пост опубликован'], 200);
+    }
+
 }

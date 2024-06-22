@@ -12,6 +12,9 @@ Route::post('/login', [AuthController::class, 'login']);
 // методы постов
 Route::get("/posts", [PostController::class, 'index']);
 Route::get("/post/{post_id}", [PostController::class, 'show']);
+
 Route::middleware("auth:sanctum")->group(function() {
     Route::post("/post-create", [PostController::class,'create']);
+    Route::patch("/post-publish/{post_id}", [PostController::class, 'publish']);
+    Route::post("/post-like/{post_id}", [PostController::class, 'like']);
 });
