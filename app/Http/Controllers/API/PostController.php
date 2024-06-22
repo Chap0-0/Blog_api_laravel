@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\PostResource;
 use App\Models\Post;
 use App\Models\PostUserLike;
 use Illuminate\Http\Request;
@@ -11,16 +12,14 @@ use Illuminate\Support\Facades\Auth;
 class PostController extends Controller
 {
     public function index() {
-        $posts = Post::all();
-        return response()->json($posts, 200);
+        return PostResource::collection(Post::all());
     }
 
     public function show($post_id) {
-        $post = Post::findOrFail($post_id);
-        return response()->json($post, 200);
+        return new PostResource(Post::findOrFail($post_id));
     }
 
-    public function create(Request $request){
+    public function store(Request $request){
         $data = $request->validate([
             'title' => 'required|string|min:4',
             'description' => 'required|string',
