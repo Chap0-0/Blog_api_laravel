@@ -1,12 +1,11 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers\API\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\PostStoreRequest;
 use App\Http\Resources\PostResource;
 use App\Models\Post;
-use App\Models\PostUserLike;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class PostController extends Controller
@@ -15,16 +14,12 @@ class PostController extends Controller
         return PostResource::collection(Post::all());
     }
 
-    public function show($post_id) {
-        return new PostResource(Post::findOrFail($post_id));
+    public function show(Post $post) {
+        return new PostResource($post);
     }
 
-    public function store(Request $request){
-        $data = $request->validate([
-            'title' => 'required|string|min:4',
-            'description' => 'required|string',
-            'file' => 'required|file',
-        ]);
+    public function store(PostStoreRequest $request){
+        $data = $request->validated();
 
         $user = Auth::user();
 
@@ -38,26 +33,22 @@ class PostController extends Controller
 
         $post = Post::create($data);
 
-        return response()->json($post, 201);
+        return response()->json(new PostResource($post), 201);
     }
 
 
-    public function like($post_id){
+    public function like(Post $post){
         $user = Auth::user();
-
-        $post = Post::findOrFail($post_id);
 
         if (!$post) {
             return response()->json(['error' => 'Пост не найден'], 404);
         }
-
-        $user->likes()->syncWithoutDetaching([$post_id]);
+        $user->likes()->syncWithoutDetaching($post->id);
         return response()->json(['message' => 'Лайк успешно поставлен'], 200);
     }
 
-    public function publish($post_id) {
+    public function publish(Post $post) {
         $user = Auth::user();
-        $post = Post::findOrFail($post_id);
         if (!$post || $user->id !== $post->user_id) {
             return response()->json(['error' => 'Пост не найден'], 404);
         }
@@ -67,6 +58,16 @@ class PostController extends Controller
         $post->save();
 
         return response()->json(['message' => 'Пост опубликован'], 200);
+    }
+
+    public function destroy(Post $post){
+        if (!$post) {
+            return response()->json(['error' => 'Пост не найден'], 404);
+        }
+
+        $post->destroy();
+
+        return response()->json(['message' => 'Пост успешно удален'], 200);
     }
 
 }

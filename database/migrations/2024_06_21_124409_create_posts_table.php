@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('title');
             $table->foreignId('user_id')->constrained('users');
             $table->string('file_path');
-            $table->string('description');
+            $table->text('description');
             $table->enum('status', ['draft', 'published'])->default('draft');
             $table->timestamps();
         });

@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\API\AuthController;
-use App\Http\Controllers\API\PostController;
+use App\Http\Controllers\API\V1\AuthController;
+use App\Http\Controllers\API\V1\PostController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -12,10 +12,10 @@ Route::post('/login', [AuthController::class, 'login']);
 
 // методы постов
 Route::get("/posts", [PostController::class, 'index']);
-Route::get("/post/{post_id}", [PostController::class, 'show']);
+Route::get("/posts/{post}", [PostController::class, 'show']);
 
 Route::middleware("auth:sanctum")->group(function() {
-    Route::post("/post-store", [PostController::class,'store']);
-    Route::patch("/post-publish/{post_id}", [PostController::class, 'publish']);
-    Route::post("/post-like/{post_id}", [PostController::class, 'like']);
+    Route::post("/posts", [PostController::class,'store']);
+    Route::patch("/posts/{post}/publish", [PostController::class, 'publish']);
+    Route::post("/posts/{post}/like", [PostController::class, 'like']);
 });
